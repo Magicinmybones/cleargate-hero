@@ -6,6 +6,17 @@
 <title>ClearGate — The AI Communication Firewall</title>
 <meta name="description" content="Check every email, document, and post against your policies while people write. Fix problems before send. Generate exam-ready evidence automatically.">
 <meta name="theme-color" content="#060607">
+<script>
+/* Opt in before the first paint; if the entrance cannot run, reveal the original page. */
+(function(){
+  if(!Element.prototype.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.documentElement.classList.add('entrance-pending');
+  window.__entranceFallback=setTimeout(function(){
+    if(window.__entranceCleanup) window.__entranceCleanup();
+    else document.documentElement.classList.remove('entrance-pending');
+  },3500);
+})();
+</script>
 <style>
 /* ───────────────────────── Fonts (embedded, subset) ───────────────────────── */
 @font-face{font-family:"Inter";font-weight:400;font-style:normal;font-display:block;src:url(assets/inter-400.woff2) format("woff2")}
@@ -257,6 +268,21 @@ svg{display:block;flex:none}
   .intro__title{font-size:calc(var(--u) * 43)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Only temporary first-paint states. The script removes this class at completion. */
+html.entrance-pending .brand,
+html.entrance-pending .nav__links li,
+html.entrance-pending .nav__cta,
+html.entrance-pending .nav__menu,
+html.entrance-pending .intro__sub,
+html.entrance-pending .ctas .btn,
+html.entrance-pending .badge{opacity:0}
+html.entrance-pending .intro__title > span{opacity:0;clip-path:inset(0 0 100% 0)}
+html.entrance-pending:not(.entrance-skip-flow) .flow,
+html.entrance-pending:not(.entrance-skip-flow) .flow > *{opacity:0}
+@media (max-width:899.98px), (max-height:599.98px), (max-aspect-ratio:11/10){
+  html.entrance-pending .nav__links li{opacity:1}
+}
 </style>
 </head>
 <body>
@@ -339,6 +365,57 @@ svg{display:block;flex:none}
   var b=document.querySelector('.nav__menu'), l=document.getElementById('primary-links');
   if(!b||!l) return;
   b.addEventListener('click',function(){var o=l.classList.toggle('is-open'); b.setAttribute('aria-expanded',o); b.setAttribute('aria-label',o?'Close menu':'Open menu');});
+})();
+
+/* A single opening composition: identity, message, actions, then the product flow. */
+(function(){
+  var root=document.documentElement;
+  if(!root.classList.contains('entrance-pending')) return;
+  var l=document.getElementById('primary-links'), b=document.querySelector('.nav__menu');
+  var animations=[];
+  var ease='cubic-bezier(.22,1,.36,1)';
+  function one(selector,frames,delay,duration){
+    var el=typeof selector==='string'?document.querySelector(selector):selector;
+    if(el) animations.push(el.animate(frames,{delay:delay,duration:duration,easing:ease,fill:'both'}));
+  }
+  function finish(){
+    clearTimeout(window.__entranceFallback);
+    root.classList.remove('entrance-pending','entrance-skip-flow');
+    animations.forEach(function(animation){animation.cancel()});
+    window.__entranceCleanup=null;
+  }
+  window.__entranceCleanup=finish;
+  try{
+    var rise=[{opacity:0,transform:'translateY(9px)'},{opacity:1,transform:'none'}];
+    one('.brand',rise,40,520);
+    if(getComputedStyle(l).display!=='none'){
+      l.querySelectorAll('li').forEach(function(item,index){one(item,rise,125+index*55,440)});
+    }
+    one('.nav__cta',rise,260,450);
+    if(getComputedStyle(b).display!=='none') one(b,rise,180,450);
+
+    var lines=document.querySelectorAll('.intro__title > span');
+    lines.forEach(function(line,index){
+      one(line,[{opacity:0,clipPath:'inset(0 0 100% 0)'},{opacity:1,clipPath:'inset(0 0 0 0)'}],245+index*135,820);
+    });
+    one('.intro__sub',[{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],710,610);
+    one('.btn--primary',rise,945,510);
+    one('.btn--ghost',rise,1035,510);
+    one('.badge',[{opacity:0},{opacity:1}],1160,430);
+
+    var flow=document.querySelector('.flow');
+    if(flow.getBoundingClientRect().top>=innerHeight){
+      root.classList.add('entrance-skip-flow');
+    }else{
+      one(flow,[{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],1000,690);
+      one('.flow__col:first-child',rise,1250,510);
+      one('.links--in',[{opacity:0,clipPath:'inset(0 100% 0 0)'},{opacity:1,clipPath:'inset(0 0 0 0)'}],1370,440);
+      one('.hub',[{opacity:0,transform:'scale(.97)'},{opacity:1,transform:'none'}],1500,500);
+      one('.links--out',[{opacity:0,clipPath:'inset(0 100% 0 0)'},{opacity:1,clipPath:'inset(0 0 0 0)'}],1640,400);
+      one('.flow__col:last-child',rise,1740,500);
+    }
+    Promise.allSettled(animations.map(function(animation){return animation.finished})).then(finish);
+  }catch(error){finish()}
 })();
 </script>
 </body>
