@@ -2,7 +2,9 @@
 
 Static ClearGate hero page for Cloudflare Pages.
 
-- `index.html`: page markup, styles, and menu interaction
-- `assets/`: extracted WebP image and WOFF2 fonts
+Live site: https://cleargate-hero.pages.dev/
 
-Deploy with `npx --yes wrangler@latest pages deploy . --project-name cleargate-hero --branch main`.
+- `public/index.html`: page markup, styles, and menu interaction
+- `public/assets/`: extracted WebP image and WOFF2 fonts
+
+Deploy with `npx --yes wrangler@latest pages deploy public --project-name cleargate-hero --branch main`.
